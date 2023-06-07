@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+
+  postgres:
+    image: postgres:13.1
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+    ports:
+      - 5432:5432
+
+  server:
+    working_dir: /go/src/github.com/infor-design/selfservice
+    build:
+      dockerfile: ./Dockerfile.dev
+    image: 611646686338.dkr.ecr.us-east-1.amazonaws.com/selfservice-server:0.0.1
+    environment:
+      - DB_HOST=postgres
+      - LOGS_PATH=/logs
+      - REPO_ROOT=/repos
+      - SSH_ROOT=/ssh
+    ports:
+      - 8080:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ~/.aws/credentials:/root/.aws/credentials
+      - ~/.kube/config:/root/.kube/config
+      - ./go.mod:./go.mod
+      - ./go.sum:./go.sum
+      - ./cmd:./cmd
+      - ./pkg:./pkg
+      - ./server:./server
+      - ./logs:/logs
+      - ./ssh:/ssh
+      - ./repos:/repos

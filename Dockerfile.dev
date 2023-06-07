@@ -1,0 +1,13 @@
+####################################################################################################
+# selfservice-dev
+####################################################################################################
+FROM selfservice-base
+COPY selfservice /usr/local/bin/
+
+USER root
+
+RUN ln -s /usr/local/bin/selfservice /usr/local/bin/selfservice-server && \
+    ln -s /usr/local/bin/selfservice /usr/local/bin/selfservice-reposerver && \
+    ln -s /usr/local/bin/selfservice /usr/local/bin/selfservice-wsserver
+
+USER 999
